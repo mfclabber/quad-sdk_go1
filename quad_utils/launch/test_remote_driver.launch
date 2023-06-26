@@ -1,0 +1,50 @@
+<launch>
+
+    <include file="$(find quad_utils)/launch/load_global_params.launch"/>
+
+    <arg name="controller" default="inverse_dynamics" />
+    <arg name = "robot_type" default="go1"/>
+    <arg name="logging" default="false" />
+    <arg name="live_plot" default="false" />
+    <arg name="dash" default="false" />
+    <arg name="map_input_type" default="mesh" />
+    <arg name="world" default="flat" />
+    <arg name="estimator" default="unitree_estimator" />
+
+    <!-- Launch the mapping and visualization nodes -->
+    <include file="$(find quad_utils)/launch/mapping.launch">
+        <arg name="input_type" value="mesh" />
+        <arg name="world" value="$(arg world)" />
+        <arg name="robot_type" value="$(arg robot_type)" />
+    </include>
+
+    <group ns="robot_1">
+        <!-- Load the parameters and the sdf description -->
+        <include file="$(find quad_utils)/launch/load_robot_params.launch">
+            <arg name="robot_type" value="$(arg robot_type)" />
+        </include>
+        <rosparam file="$(find gazebo_scripts)/config/quad_control.yaml" command="load" />
+        <include file="$(find quad_utils)/launch/test_spawn.launch">
+            <arg name="robot_type" value="$(arg robot_type)" />
+            <arg name="controller" default="$(arg controller)" />
+            <arg name="init_pose" value="-x 0.0 -y 0.0 -z 0.5" />
+            <arg name="namespace" value="robot_1" />
+            <arg name="estimator" value="$(arg estimator)" />
+        </include>
+        <param name="robot_type" value="$(arg robot_type)" />
+    </group>
+
+    <include file="$(find quad_utils)/launch/quad_visualization.launch">
+        <arg name="robot_type" value="$(arg robot_type)" />
+        <arg name="live_plot" value="$(arg live_plot)" />
+        <arg name="dash" value="$(arg dash)" />
+    </include>
+
+    <group if="$(arg logging)">
+        <include file="$(find quad_utils)/launch/logging.launch" />
+    </group>
+
+    <!-- Start the heartbeat node -->
+    <node name="remote_heartbeat" pkg="quad_utils" type="remote_heartbeat_node" output="screen" />
+
+</launch>

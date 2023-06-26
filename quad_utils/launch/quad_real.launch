@@ -1,0 +1,52 @@
+<launch>
+    <arg name="robot_type" default="go1" />
+    <arg name="multiple_robots" default="false" />
+    <arg name="gui" default="false" />
+    <arg name="paused" default="false" />
+    <arg name="controller" default="inverse_dynamics" />
+    <arg name="live_plot" default="false" />
+    <arg name="dash" default="false" />
+    <arg name="world" default="flat" />
+    <arg name="logging" default="false" />
+    <arg name="is_hardware" default="true" />
+    <arg name="init_pose"     default="-x 0.0 -y 0.0 -z 0.5"/>
+    <arg name="namespace"     default="robot_1"/>
+    <arg name="mocap"  default="false"/>
+
+    <param name="robot_type" value="$(arg robot_type)" />
+    <param name="mocap" value="$(arg mocap)" />
+
+    <!-- <include file="$(find quad_utils)/launch/mapping.launch">
+    <arg name="input_type" value="mesh" />
+    <arg name="world" value="$(arg world)" />
+    <arg name="robot_type" value="$(arg robot_type)" />
+    </include> -->
+    <include file="$(find quad_utils)/launch/load_global_params.launch">
+        <arg name="robot_type" value="$(arg robot_type)"/>
+    </include>
+
+    <include file="$(find quad_utils)/launch/load_robot_params.launch">
+        <arg name="robot_type" value="$(arg robot_type)" />
+    </include>
+   
+    <!-- Users can add more robots here -->
+    <!-- Launch the robot driver node -->
+
+    <node name="robot_driver" pkg="robot_driver" type="robot_driver_node" output="screen">
+        <param name="robot_type" value="$(arg robot_type)" /> 
+        <param name="controller" value="$(arg controller)" />
+        <param name="is_hardware" value="$(arg is_hardware)" />
+    </node>
+
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+      <param name="publish_frequency" type="double" value="1000.0"/>-->
+      <remap from="joint_states" to="/state/joints" />
+    </node>
+  <!-- Load the visualization tools  -->
+    <node pkg="rviz" type="rviz" name="rviz" respawn="false" output="screen"
+      args="-d $(find go1_description)/launch/check_joint.rviz"/>
+    <!--<node name="rviz" pkg="rviz" type="rviz" args="-d $(find quad_utils)/rviz/quad_viewer.rviz"/>
+    <node name="rviz_interface" pkg="quad_utils" type="rviz_interface_node" output="screen"/> -->
+    
+
+</launch>

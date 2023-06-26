@@ -1,0 +1,351 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>dynamicsModel</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-09-28"><meta name="DC.source" content="dynamicsModel.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#3">Kinematics</a></li><li><a href="#4">Dynamics</a></li><li><a href="#5">Export</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> dynamicsModel(parameter)
+
+mkdir(<span class="string">'generated_codes/matlab'</span>);
+mkdir(<span class="string">'generated_codes/cpp'</span>);
+mkdir(<span class="string">'utils/casadi'</span>);
+
+generateLegDynamics(parameter);
+loadDynamics(parameter);
+
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> loadDynamics(parameter)
+
+addpath(<span class="string">'./utils'</span>)
+addpath(<span class="string">'./generated_codes/matlab'</span>)
+
+<span class="comment">% Require CasADi for autodiff</span>
+addpath(<span class="string">'./utils/casadi'</span>)
+import <span class="string">casadi.*</span>
+
+x0 = SX.sym(<span class="string">'x0'</span>, [parameter.n, 1]); <span class="comment">% First finite element</span>
+x1 = SX.sym(<span class="string">'x1'</span>, [parameter.n, 1]); <span class="comment">% Second finite element</span>
+u = SX.sym(<span class="string">'u'</span>, [parameter.m, 1]); <span class="comment">% Input</span>
+feet_location = SX.sym(<span class="string">'feet_location'</span>, [12, 1]); <span class="comment">% Foot vector</span>
+dt = SX.sym(<span class="string">'dt'</span>); <span class="comment">% Finite element length</span>
+mu = SX.sym(<span class="string">'mu'</span>); <span class="comment">% Friction coefficient</span>
+lambda = SX.sym(<span class="string">'lambda'</span>, [parameter.n+16, 1]); <span class="comment">% Constraint multipliers</span>
+
+[M, h, J_u, q_dot] = legDynamics(x1, feet_location); <span class="comment">% Backward Euler</span>
+EOM = [(x1(1:parameter.n/2)-x0(1:parameter.n/2))-dt*q_dot;
+    M*(x1(parameter.n/2+1:end)-x0(parameter.n/2+1:end))+dt*(h-J_u*u)]; <span class="comment">% Equation of motion</span>
+
+tmp = [1, 0, -mu;
+    -1, 0, -mu;
+    0, 1, -mu;
+    0, -1, -mu];
+friction_cone = kron(diag([1;1;1;1]), tmp);
+friction = friction_cone*u; <span class="comment">% Friction pyramid</span>
+
+p = [dt; mu; feet_location]; <span class="comment">% Optimization parameter</span>
+w = [x0; u; x1]; <span class="comment">% Decision variable</span>
+
+g = [EOM; friction]; <span class="comment">% Constraints including dynamics and friction</span>
+eval_g = Function([<span class="string">'eval_g_'</span>, convertStringsToChars(parameter.name)],{w, p},{g},{<span class="string">'w'</span>,<span class="string">'p'</span>},{<span class="string">'g'</span>}); <span class="comment">% CasADi function</span>
+
+jac_g = jacobian(g, w); <span class="comment">% Constraint jacobian</span>
+[hess_g, ~] = hessian(g'*lambda, w);
+hess_g = tril(hess_g); <span class="comment">% Constraint hessian</span>
+
+eval_jac_g = Function([<span class="string">'eval_jac_g_'</span>, convertStringsToChars(parameter.name)], {w, p}, {jac_g}, {<span class="string">'w'</span>, <span class="string">'p'</span>}, {<span class="string">'jac_g'</span>});
+eval_hess_g = Function([<span class="string">'eval_hess_g_'</span>, convertStringsToChars(parameter.name)], {w, lambda, p}, {hess_g}, {<span class="string">'w'</span>, <span class="string">'lambda'</span>, <span class="string">'p'</span>}, {<span class="string">'hess_g'</span>});
+
+<span class="comment">% Generate cpp codes</span>
+opts = struct(<span class="string">'cpp'</span>, true, <span class="string">'with_header'</span>, true);
+eval_g.generate([<span class="string">'eval_g_'</span>, convertStringsToChars(parameter.name), <span class="string">'.cpp'</span>], opts);
+eval_jac_g.generate([<span class="string">'eval_jac_g_'</span>, convertStringsToChars(parameter.name), <span class="string">'.cpp'</span>], opts);
+eval_hess_g.generate([<span class="string">'eval_hess_g_'</span>, convertStringsToChars(parameter.name), <span class="string">'.cpp'</span>], opts);
+
+movefile(<span class="string">'eval*'</span>, <span class="string">'generated_codes/cpp'</span>);
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> generateLegDynamics(parameter)
+</pre><pre class="codeinput">addpath(<span class="string">'./utils'</span>)
+
+syms <span class="string">p</span> <span class="string">theta</span> <span class="string">p_dot</span> <span class="string">omega</span> <span class="string">[3, 1]</span> <span class="string">real</span> <span class="comment">% Body positions, RPY angles, linear velocities in world frame and angular velocities in body frame</span>
+syms <span class="string">feet_location</span> <span class="string">[12, 1]</span> <span class="string">real</span> <span class="comment">% Foot to body vectors in world frame</span>
+
+q = [p; theta];
+</pre><h2 id="3">Kinematics</h2><pre class="codeinput">R_wb = [cos(theta(3)), -sin(theta(3)), 0;
+    sin(theta(3)), cos(theta(3)), 0;
+    0, 0, 1]*<span class="keyword">...</span>
+    [cos(theta(2)), 0, sin(theta(2));
+    0, 1, 0;
+    -sin(theta(2)), 0, cos(theta(2))]*<span class="keyword">...</span>
+    [1, 0, 0;
+    0, cos(theta(1)), -sin(theta(1));
+    0, sin(theta(1)), cos(theta(1))]; <span class="comment">% Rotation matrix</span>
+
+J_wb__b=jacobian(reshape(R_wb, 9, 1), theta);
+J_wb__b=[skew2angvel(R_wb'*reshape(J_wb__b(:, 1), 3, 3)), <span class="keyword">...</span>
+    skew2angvel(R_wb'*reshape(J_wb__b(:, 2), 3, 3)), <span class="keyword">...</span>
+    skew2angvel(R_wb'*reshape(J_wb__b(:, 3), 3, 3))]; <span class="comment">% Jacobian</span>
+theta_dot=J_wb__b\omega; <span class="comment">% Euler angle rates</span>
+V_wb__b = [R_wb'*p_dot; omega]; <span class="comment">% Body twist</span>
+</pre><h2 id="4">Dynamics</h2><pre class="codeinput">M_b = blkdiag(diag(repmat(parameter.physics.mass_body, 3, 1)), parameter.physics.inertia_body); <span class="comment">% Body inertia</span>
+
+T = V_wb__b'*M_b*V_wb__b./2; <span class="comment">% Kinematic energy</span>
+V = (parameter.physics.mass_body)*parameter.physics.gravitational_constant*p(3); <span class="comment">% Potential energy</span>
+
+L = T-V; <span class="comment">% Lagrangian</span>
+L = elementwiseSimplify(L);
+
+q_dot = [p_dot; theta_dot];
+velocities = [p_dot; omega];
+
+<span class="comment">% Lagrange&#8217;s equations</span>
+tmp = jacobian(L, velocities)*blkdiag(eye(3), J_wb__b);
+tmp = elementwiseSimplify(tmp);
+
+M = jacobian(tmp, velocities); <span class="comment">% Inertia matrix</span>
+
+tmp2 = jacobian(reshape(J_wb__b, 9, 1), theta);
+tmp2 = [reshape(tmp2(:, 1), 3, 3)*theta_dot, <span class="keyword">...</span>
+    reshape(tmp2(:, 2), 3, 3)*theta_dot, <span class="keyword">...</span>
+    reshape(tmp2(:, 3), 3, 3)*theta_dot];
+tmp2 = blkdiag(zeros(3, 3), tmp2);
+tmp2 = elementwiseSimplify(tmp2);
+
+h = jacobian(tmp, q)*q_dot-<span class="keyword">...</span>
+    (jacobian(L, q))'-<span class="keyword">...</span>
+    (jacobian(L, velocities)*tmp2)'; <span class="comment">% Coriolis and potential energy terms</span>
+
+<span class="comment">% Input jacobian</span>
+J_feet = [];
+
+<span class="keyword">for</span> i = 1:4
+    g_lb = [R_wb, feet_location(1+3*(i-1):3*i); 0, 0, 0, 1];
+    V_lb__s = tform2adjoint(g_lb)*V_wb__b;
+    J_lb__s = jacobian(V_lb__s, velocities)*blkdiag(eye(3), J_wb__b);
+
+    J_feet = [J_feet, J_lb__s'*[eye(3); zeros(3)]];
+<span class="keyword">end</span>
+</pre><h2 id="5">Export</h2><pre class="codeinput">x = [q; velocities]; <span class="comment">% State space</span>
+
+M = elementwiseSimplify(M);
+h = elementwiseSimplify(h);
+J_feet = elementwiseSimplify(J_feet);
+q_dot = elementwiseSimplify(q_dot);
+
+matlabFunction(M, h, J_feet, q_dot, <span class="string">'File'</span>, <span class="string">'generated_codes/matlab/legDynamics'</span>, <span class="string">'Vars'</span>, {x, feet_location});
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><pre class="codeoutput">Warning: Directory already exists. 
+Warning: Directory already exists. 
+Warning: Directory already exists. 
+</pre><pre class="codeoutput error">Not enough input arguments.
+
+Error in dynamicsModel (line 7)
+generateLegDynamics(parameter);
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function dynamicsModel(parameter)
+
+mkdir('generated_codes/matlab');
+mkdir('generated_codes/cpp');
+mkdir('utils/casadi');
+
+generateLegDynamics(parameter);
+loadDynamics(parameter);
+
+end
+
+function loadDynamics(parameter)
+
+addpath('./utils')
+addpath('./generated_codes/matlab')
+
+% Require CasADi for autodiff
+addpath('./utils/casadi')
+import casadi.*
+
+x0 = SX.sym('x0', [parameter.n, 1]); % First finite element
+x1 = SX.sym('x1', [parameter.n, 1]); % Second finite element
+u = SX.sym('u', [parameter.m, 1]); % Input
+feet_location = SX.sym('feet_location', [12, 1]); % Foot vector
+dt = SX.sym('dt'); % Finite element length
+mu = SX.sym('mu'); % Friction coefficient
+lambda = SX.sym('lambda', [parameter.n+16, 1]); % Constraint multipliers
+
+[M, h, J_u, q_dot] = legDynamics(x1, feet_location); % Backward Euler
+EOM = [(x1(1:parameter.n/2)-x0(1:parameter.n/2))-dt*q_dot;
+    M*(x1(parameter.n/2+1:end)-x0(parameter.n/2+1:end))+dt*(h-J_u*u)]; % Equation of motion
+
+tmp = [1, 0, -mu;
+    -1, 0, -mu;
+    0, 1, -mu;
+    0, -1, -mu];
+friction_cone = kron(diag([1;1;1;1]), tmp);
+friction = friction_cone*u; % Friction pyramid
+
+p = [dt; mu; feet_location]; % Optimization parameter
+w = [x0; u; x1]; % Decision variable
+
+g = [EOM; friction]; % Constraints including dynamics and friction
+eval_g = Function(['eval_g_', convertStringsToChars(parameter.name)],{w, p},{g},{'w','p'},{'g'}); % CasADi function
+
+jac_g = jacobian(g, w); % Constraint jacobian
+[hess_g, ~] = hessian(g'*lambda, w);
+hess_g = tril(hess_g); % Constraint hessian
+
+eval_jac_g = Function(['eval_jac_g_', convertStringsToChars(parameter.name)], {w, p}, {jac_g}, {'w', 'p'}, {'jac_g'});
+eval_hess_g = Function(['eval_hess_g_', convertStringsToChars(parameter.name)], {w, lambda, p}, {hess_g}, {'w', 'lambda', 'p'}, {'hess_g'});
+
+% Generate cpp codes
+opts = struct('cpp', true, 'with_header', true);
+eval_g.generate(['eval_g_', convertStringsToChars(parameter.name), '.cpp'], opts);
+eval_jac_g.generate(['eval_jac_g_', convertStringsToChars(parameter.name), '.cpp'], opts);
+eval_hess_g.generate(['eval_hess_g_', convertStringsToChars(parameter.name), '.cpp'], opts);
+
+movefile('eval*', 'generated_codes/cpp');
+end
+
+function generateLegDynamics(parameter)
+
+addpath('./utils')
+
+syms p theta p_dot omega [3, 1] real % Body positions, RPY angles, linear velocities in world frame and angular velocities in body frame
+syms feet_location [12, 1] real % Foot to body vectors in world frame
+
+q = [p; theta];
+
+%% Kinematics
+R_wb = [cos(theta(3)), -sin(theta(3)), 0;
+    sin(theta(3)), cos(theta(3)), 0;
+    0, 0, 1]*...
+    [cos(theta(2)), 0, sin(theta(2));
+    0, 1, 0;
+    -sin(theta(2)), 0, cos(theta(2))]*...
+    [1, 0, 0;
+    0, cos(theta(1)), -sin(theta(1));
+    0, sin(theta(1)), cos(theta(1))]; % Rotation matrix
+
+J_wb__b=jacobian(reshape(R_wb, 9, 1), theta);
+J_wb__b=[skew2angvel(R_wb'*reshape(J_wb__b(:, 1), 3, 3)), ...
+    skew2angvel(R_wb'*reshape(J_wb__b(:, 2), 3, 3)), ...
+    skew2angvel(R_wb'*reshape(J_wb__b(:, 3), 3, 3))]; % Jacobian
+theta_dot=J_wb__b\omega; % Euler angle rates
+V_wb__b = [R_wb'*p_dot; omega]; % Body twist
+
+%% Dynamics
+M_b = blkdiag(diag(repmat(parameter.physics.mass_body, 3, 1)), parameter.physics.inertia_body); % Body inertia
+
+T = V_wb__b'*M_b*V_wb__b./2; % Kinematic energy
+V = (parameter.physics.mass_body)*parameter.physics.gravitational_constant*p(3); % Potential energy
+
+L = T-V; % Lagrangian
+L = elementwiseSimplify(L);
+
+q_dot = [p_dot; theta_dot];
+velocities = [p_dot; omega];
+
+% Lagrange’s equations
+tmp = jacobian(L, velocities)*blkdiag(eye(3), J_wb__b);
+tmp = elementwiseSimplify(tmp);
+
+M = jacobian(tmp, velocities); % Inertia matrix
+
+tmp2 = jacobian(reshape(J_wb__b, 9, 1), theta);
+tmp2 = [reshape(tmp2(:, 1), 3, 3)*theta_dot, ...
+    reshape(tmp2(:, 2), 3, 3)*theta_dot, ...
+    reshape(tmp2(:, 3), 3, 3)*theta_dot];
+tmp2 = blkdiag(zeros(3, 3), tmp2);
+tmp2 = elementwiseSimplify(tmp2);
+
+h = jacobian(tmp, q)*q_dot-...
+    (jacobian(L, q))'-...
+    (jacobian(L, velocities)*tmp2)'; % Coriolis and potential energy terms
+
+% Input jacobian
+J_feet = [];
+
+for i = 1:4
+    g_lb = [R_wb, feet_location(1+3*(i-1):3*i); 0, 0, 0, 1];
+    V_lb__s = tform2adjoint(g_lb)*V_wb__b;
+    J_lb__s = jacobian(V_lb__s, velocities)*blkdiag(eye(3), J_wb__b);
+    
+    J_feet = [J_feet, J_lb__s'*[eye(3); zeros(3)]];
+end
+
+%% Export
+x = [q; velocities]; % State space
+
+M = elementwiseSimplify(M);
+h = elementwiseSimplify(h);
+J_feet = elementwiseSimplify(J_feet);
+q_dot = elementwiseSimplify(q_dot);
+
+matlabFunction(M, h, J_feet, q_dot, 'File', 'generated_codes/matlab/legDynamics', 'Vars', {x, feet_location});
+
+end
+
+##### SOURCE END #####
+--></body></html>

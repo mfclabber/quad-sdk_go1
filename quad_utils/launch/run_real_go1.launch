@@ -1,0 +1,54 @@
+<launch>
+
+    <arg name="robot_type" default="go1"/>
+    <arg name="mocap" default="false" />
+    <arg name="logging" default="false" />
+    <arg name="controller" default="inverse_dynamics" />
+    <arg name="is_hardware" default="true" />
+    <arg name="estimator" default="unitree_estimator" />
+    <arg name="live_plot" default="false" />
+    <arg name="dash" default="false" />
+    <arg name="map_input_type" default="mesh" />
+    <arg name="world" default="flat" />
+
+    <include file="$(find quad_utils)/launch/load_global_params.launch"/>
+    
+    <!-- Load the parameters and the sdf description -->
+    <include file="$(find quad_utils)/launch/load_robot_params.launch">
+        <arg name="robot_type" value="$(arg robot_type)" />
+    </include>
+
+    <!-- Launch the mapping and visualization nodes -->
+    <include file="$(find quad_utils)/launch/mapping.launch">
+        <arg name="input_type" value="mesh" />
+        <arg name="world" value="$(arg world)" />
+        <arg name="robot_type" value="$(arg robot_type)" />
+    </include>
+    
+    <!-- Load the parameters and the sdf description -->	
+    <include file="$(find quad_utils)/launch/quad_visualization.launch">
+        <arg name="robot_type" value="$(arg robot_type)" />
+        <arg name="live_plot" value="$(arg live_plot)" />
+        <arg name="dash" value="$(arg dash)" />
+    </include>
+
+    <node name="robot_driver" pkg="robot_driver" type="robot_driver_node" output="screen">
+        <param name="controller" value="$(arg controller)" />
+        <param name="is_hardware" value="$(arg is_hardware)" />
+        <param name="robot_type" value="$(arg robot_type)"/>
+        <param name="estimator" value="$(arg estimator)"/>
+    </node>
+    
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+        <param name="publish_frequency" type="double" value="1000.0"/>-->
+        <remap from="joint_states" to="/state/joints" />
+    </node>
+
+    <group if="$(arg logging)">
+        <include file="$(find quad_utils)/launch/logging.launch" />
+    </group>
+
+    <!-- Start the heartbeat node -->
+    <node name="remote_heartbeat" pkg="quad_utils" type="remote_heartbeat_node" output="screen" />
+
+</launch>
