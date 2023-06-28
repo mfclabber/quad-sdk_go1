@@ -5,7 +5,7 @@ void UnitreeEstimator::init(ros::NodeHandle &nh)
 {
     nh_ = nh;
     start_time = ros::Time::now().toSec();
-    wait_duration = 5;
+    wait_duration = 20;
     // load Comp_filter params
     quad_utils::loadROSParam(nh_, "/robot_driver/high_pass_a", high_pass_a_);
     quad_utils::loadROSParam(nh_, "/robot_driver/high_pass_b", high_pass_b_);
@@ -43,9 +43,9 @@ bool UnitreeEstimator::updateOnce(
     quad_msgs::RobotState &last_robot_state_msg_)
 {
     ros::Time state_timestamp = ros::Time::now();
-    last_robot_state_msg_.body.twist.angular = last_imu_msg_.angular_velocity;
-    last_robot_state_msg_.body.twist.linear = last_imu_msg_.linear_acceleration;
-    last_robot_state_msg_.body.pose.orientation = last_imu_msg_.orientation;
+    last_robot_state_msg_.body.twist.angular = -last_imu_msg_.angular_velocity;
+    last_robot_state_msg_.body.twist.linear = -last_imu_msg_.linear_acceleration;
+    last_robot_state_msg_.body.pose.orientation = -last_imu_msg_.orientation;
     last_robot_state_msg_.joints = last_joint_state_msg_;
 
     last_robot_state_msg_.header.stamp = state_timestamp;
