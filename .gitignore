@@ -1,6 +1,4 @@
 docs/
-*.pyc
-*.vscode
 **/build/
 *.vscode
 external/ipopt/*
