@@ -37,10 +37,10 @@ std::map<int, int> sign_q2u = { // Change sign for motion
      {FR_0, 1},
      {FR_1, -1},
      {FR_2, 1},
-     {RL_0, -1},
+     {RL_0, 1},
      {RL_1, -1},
      {RL_2, 1},
-     {RR_0, -1},
+     {RR_0, 1},
      {RR_1, -1},
      {RR_2, 1},
 };

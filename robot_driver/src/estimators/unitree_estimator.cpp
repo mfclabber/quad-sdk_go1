@@ -43,15 +43,15 @@ bool UnitreeEstimator::updateOnce(
     quad_msgs::RobotState &last_robot_state_msg_)
 {
     ros::Time state_timestamp = ros::Time::now();
-    last_robot_state_msg_.body.twist.angular = -last_imu_msg_.angular_velocity;
-    last_robot_state_msg_.body.twist.linear = -last_imu_msg_.linear_acceleration;
-    last_robot_state_msg_.body.pose.orientation = -last_imu_msg_.orientation;
+    last_robot_state_msg_.body.twist.angular = last_imu_msg_.angular_velocity;
+    last_robot_state_msg_.body.twist.linear = last_imu_msg_.linear_acceleration;
+    last_robot_state_msg_.body.pose.orientation = last_imu_msg_.orientation;
     last_robot_state_msg_.joints = last_joint_state_msg_;
 
     last_robot_state_msg_.header.stamp = state_timestamp;
     last_joint_state_msg_.header.stamp = state_timestamp;
     // last_imu_msg_.header.stamp = state_timestamp;
-    last_robot_state_msg_.body.pose.position.z = 1.;
+    last_robot_state_msg_.body.pose.position.z = -1.;
     last_robot_state_msg_.body.pose.position.x = x_pos;
     // x_pos += dx;
     // if (x_pos > 3 || x_pos < -1)

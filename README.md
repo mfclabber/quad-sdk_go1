@@ -56,7 +56,7 @@ Legged Robots, May 2022. ([paper])
 Refer to the [Quad-SDK Wiki](https://github.com/robomechanics/quad-sdk/wiki/1.-Getting-Started-with-Quad-SDK) for installation, dependency, and unit testing information. Currently Quad-SDK requires ROS Melodic on Ubuntu 18.04. All other dependencies are installed with the included setup script.
 
 ## Usage
-
+1
 Launch the simulation with:
 
 ```
