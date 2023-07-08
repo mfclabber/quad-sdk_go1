@@ -1,3 +1,51 @@
+Установка [unitree_legged_sdk v3.8.6](https://github.com/unitreerobotics/unitree_legged_sdk.git)):
+```
+cd <path_to_quad-sdk>/src/quad-sdk-go1
+```
+```
+git clone https://github.com/unitreerobotics/unitree_legged_sdk.git
+```
+```
+cd unitree_legged_sdk
+```
+```
+mkdir build
+```
+```
+cmake .. && make
+```
+```
+cd <path_to_quad-sdk>
+```
+```
+catkin build || catkin_make
+```
+
+## Run real Unitree go1
+
+Предварительно настроить проводное соединение по UDP->Ethernet
+
+Запуск визуализации, контроллера и драйвера:
+```
+roslaunch quad_utils test_remote_driver.launch
+```
+
+Робот встает:
+```
+rostopic pub /robot_1/control/mode std_msgs/UInt8 "data: 1"
+```
+
+Запуск локального планнера:
+```
+roslaunch quad_utils quad_plan.launch reference:=twist logging:=true
+```
+
+Управление клавиатурой через ROS пакет, который посылает в локальный планнер направление движения
+```
+rosrun teleop_twist_keyboard teleop_twist_keyboard.py cmd_vel:=/robot_1/cmd_vel
+```
+
+
 [![CircleCI](https://circleci.com/gh/robomechanics/quad-sdk/tree/main.svg?style=shield)](https://circleci.com/gh/robomechanics/quad-sdk/tree/main)
 ![Example image](doc/quad_sdk_promo.png)
 
