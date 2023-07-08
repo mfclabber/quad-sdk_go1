@@ -5,7 +5,7 @@ void UnitreeEstimator::init(ros::NodeHandle &nh)
 {
     nh_ = nh;
     start_time = ros::Time::now().toSec();
-    wait_duration = 20;
+    wait_duration = 5;
     // load Comp_filter params
     quad_utils::loadROSParam(nh_, "/robot_driver/high_pass_a", high_pass_a_);
     quad_utils::loadROSParam(nh_, "/robot_driver/high_pass_b", high_pass_b_);
@@ -42,6 +42,8 @@ void UnitreeEstimator::init(ros::NodeHandle &nh)
 bool UnitreeEstimator::updateOnce(
     quad_msgs::RobotState &last_robot_state_msg_)
 {
+
+
     ros::Time state_timestamp = ros::Time::now();
     last_robot_state_msg_.body.twist.angular = last_imu_msg_.angular_velocity;
     last_robot_state_msg_.body.twist.linear = last_imu_msg_.linear_acceleration;
@@ -51,72 +53,12 @@ bool UnitreeEstimator::updateOnce(
     last_robot_state_msg_.header.stamp = state_timestamp;
     last_joint_state_msg_.header.stamp = state_timestamp;
     // last_imu_msg_.header.stamp = state_timestamp;
-    last_robot_state_msg_.body.pose.position.z = -1.;
+    last_robot_state_msg_.body.pose.position.z = 1.;
     last_robot_state_msg_.body.pose.position.x = x_pos;
-    // x_pos += dx;
-    // if (x_pos > 3 || x_pos < -1)
-    // {
-    //     dx = -dx;
-    // }
-
-    // // Check if mocap data was received
-    // if (last_mocap_msg_ == NULL) {
-    //   ROS_WARN_THROTTLE(1, "No body pose (mocap) recieved");
-    //   return false;
-    // }
-    // // Copy mocap readings
-    // last_robot_state_msg_.body.pose.orientation =
-    //     last_mocap_msg_->pose.orientation;
-    // last_robot_state_msg_.body.pose.position = last_mocap_msg_->pose.position;
-
-    // // IMU is in body frame
-    // Eigen::Vector3d acc;
-    // acc << last_imu_msg_.linear_acceleration.x,
-    //     last_imu_msg_.linear_acceleration.y, last_imu_msg_.linear_acceleration.z;
-
-    // Eigen::Matrix3d rot;
-    // tf2::Quaternion q(
-    //     last_mocap_msg_->pose.orientation.x, last_mocap_msg_->pose.orientation.y,
-    //     last_mocap_msg_->pose.orientation.z, last_mocap_msg_->pose.orientation.w);
-    // q.normalize();
-    // tf2::Matrix3x3 m(q);
-    // Eigen::Vector3d rpy;
-    // m.getRPY(rpy[0], rpy[1], rpy[2]);
-    // quadKD_->getRotationMatrix(rpy, rot);
-    // acc = rot * acc;
-
-    // // Ignore gravity
-    // acc[2] -= 9.81;
-
-    // if (!high_pass_filter.init) {
-    //   // Init filter, we want to make sure that if the input is zero, the
-    //   // output velocity is zero and the state remains the same
-    //   for (size_t i = 0; i < 3; i++) {
-    //     high_pass_filter.x.at(i) << 0, 0;
-    //   }
-    //   high_pass_filter.init = true;
-    // }
-
-    // // Apply filter
-    // for (size_t i = 0; i < 3; i++) {
-    //   // Compute outputs
-    //   imu_vel_estimate_(i) = (high_pass_filter.C * high_pass_filter.x.at(i) +
-    //                           high_pass_filter.D * acc(i))(0, 0);
-
-    //   // Compute states
-    //   high_pass_filter.x.at(i) = high_pass_filter.A * high_pass_filter.x.at(i) +
-    //                              high_pass_filter.B * acc(i);
-    // }
-
-    // // Complementary filter
-    // vel_estimate_ = imu_vel_estimate_ + mocap_vel_estimate_;
-    // quad_utils::Eigen3ToVector3Msg(vel_estimate_,
-    //                                last_robot_state_msg_.body.twist.linear);
-
-    // Fill in the rest of the state message (foot state and headers)
-    quad_utils::fkRobotState(*quadKD_, last_robot_state_msg_);
-    quad_utils::updateStateHeaders(last_robot_state_msg_, state_timestamp, "map",
-                                   0);
+    
+    //quad_utils::fkRobotState(*quadKD_, last_robot_state_msg_);
+    //quad_utils::updateStateHeaders(last_robot_state_msg_, state_timestamp, "map",
+    //                               0);
     // int leg_index = 3;
     // Eigen::Vector3d joint_state;
     // joint_state << 0, 0, 0;
@@ -147,14 +89,48 @@ bool UnitreeEstimator::updateOnce(
         z_ax.erase(z_ax.begin());
         last_robot_state_msg_.body.pose.position.z = *max_element(z_ax.begin(), z_ax.end());
         ;
-        std::cout << "TRANFORM OBTAINED" << transform.getOrigin().z() << "\n";
+        // std::cout << "TRANFORM OBTAINED" << transform.getOrigin().z() << "\n";
     }
 
-    //  std::cout << "FOOT STATE:\nx\t"
-    //           << last_robot_state_msg_.feet.feet[0].position.x
-    //           << "\ny\t" << last_robot_state_msg_.feet.feet[0].position.y
-    //           << "\nz\t" << last_robot_state_msg_.feet.feet[0].position.z << "\n";
+    //  std::cout << "BODY TWIST LINEAR:\nx\t"
+    //           << last_robot_state_msg_.body.twist.linear.x
+    //           << "\ny\t" << last_robot_state_msg_.body.twist.linear.y
+    //           << "\nz\t" << last_robot_state_msg_.body.twist.linear.z << "\n";
     // std::cout << "New header" << last_imu_msg_.header.stamp << std::endl;
+
+    //  std::cout << "BODY TWIST ANGULAR:\nx\t"
+    //           << last_robot_state_msg_.body.twist.angular.x
+    //           << "\ny\t" << last_robot_state_msg_.body.twist.angular.y
+    //           << "\nz\t" << last_robot_state_msg_.body.twist.angular.z << "\n";
+    // std::cout << "New header" << last_imu_msg_.header.stamp << std::endl;
+
+    // std::cout << "BODY POSE POSITION:\nx\t"
+    //           << last_robot_state_msg_.body.pose.position.x
+    //           << "\ny\t" << last_robot_state_msg_.body.pose.position.y
+    //           << "\nz\t" << last_robot_state_msg_.body.pose.position.z << "\n";
+    // std::cout << "New header" << last_imu_msg_.header.stamp << std::endl;
+
+    // std::cout << "BODY POSE ORIENTATION:\nx\t"
+    //           << last_robot_state_msg_.body.pose.orientation.x
+    //           << "\ny\t" << last_robot_state_msg_.body.pose.orientation.y
+    //           << "\nz\t" << last_robot_state_msg_.body.pose.orientation.z 
+    //           << "\nw\t" << last_robot_state_msg_.body.pose.orientation.w << "\n";
+    // std::cout << "New header" << last_imu_msg_.header.stamp << std::endl;
+    
+        last_robot_state_msg_.feet.feet[0].position.z -= 0.65f;
+        last_robot_state_msg_.feet.feet[1].position.z -= 0.65f;
+        last_robot_state_msg_.feet.feet[2].position.z -= 0.65f;
+        last_robot_state_msg_.feet.feet[3].position.z -= 0.65f;
+        
+        quad_utils::fkRobotState(*quadKD_, last_robot_state_msg_);
+        quad_utils::updateStateHeaders(last_robot_state_msg_, state_timestamp, "map",0);
+
+        std::cout << "FEET POS:\nx\t"
+              << last_robot_state_msg_.feet.feet[0].position.z
+              << "\ny\t" << last_robot_state_msg_.feet.feet[1].position.z
+              << "\nz\t" << last_robot_state_msg_.feet.feet[2].position.z
+              << "\nw\t" << last_robot_state_msg_.feet.feet[3].position.z << "\n";
+
     return true;
 }
 

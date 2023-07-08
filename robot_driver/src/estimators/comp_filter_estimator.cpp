@@ -2,8 +2,7 @@
 
 CompFilterEstimator::CompFilterEstimator() {}
 
-void CompFilterEstimator::init(ros::NodeHandle &nh)
-{
+void CompFilterEstimator::init(ros::NodeHandle& nh) {
   nh_ = nh;
   // load Comp_filter params
   quad_utils::loadROSParam(nh_, "/robot_driver/high_pass_a", high_pass_a_);
@@ -16,124 +15,103 @@ void CompFilterEstimator::init(ros::NodeHandle &nh)
   quad_utils::loadROSParam(nh_, "/robot_driver/low_pass_c", low_pass_c_);
   quad_utils::loadROSParam(nh_, "/robot_driver/low_pass_d", low_pass_d_);
   high_pass_filter.A =
-      Eigen::Map<Eigen::Matrix<double, 2, 2>>(high_pass_a_.data()).transpose();
+      Eigen::Map<Eigen::Matrix<double, 2, 2> >(high_pass_a_.data()).transpose();
   high_pass_filter.B =
-      Eigen::Map<Eigen::Matrix<double, 1, 2>>(high_pass_b_.data()).transpose();
+      Eigen::Map<Eigen::Matrix<double, 1, 2> >(high_pass_b_.data()).transpose();
   high_pass_filter.C =
-      Eigen::Map<Eigen::Matrix<double, 2, 1>>(high_pass_c_.data()).transpose();
+      Eigen::Map<Eigen::Matrix<double, 2, 1> >(high_pass_c_.data()).transpose();
   high_pass_filter.D =
-      Eigen::Map<Eigen::Matrix<double, 1, 1>>(high_pass_d_.data()).transpose();
+      Eigen::Map<Eigen::Matrix<double, 1, 1> >(high_pass_d_.data()).transpose();
   high_pass_filter.x.resize(3);
   high_pass_filter.init = false;
 
   low_pass_filter.A =
-      Eigen::Map<Eigen::Matrix<double, 2, 2>>(low_pass_a_.data()).transpose();
+      Eigen::Map<Eigen::Matrix<double, 2, 2> >(low_pass_a_.data()).transpose();
   low_pass_filter.B =
-      Eigen::Map<Eigen::Matrix<double, 1, 2>>(low_pass_b_.data()).transpose();
+      Eigen::Map<Eigen::Matrix<double, 1, 2> >(low_pass_b_.data()).transpose();
   low_pass_filter.C =
-      Eigen::Map<Eigen::Matrix<double, 2, 1>>(low_pass_c_.data()).transpose();
+      Eigen::Map<Eigen::Matrix<double, 2, 1> >(low_pass_c_.data()).transpose();
   low_pass_filter.D =
-      Eigen::Map<Eigen::Matrix<double, 1, 1>>(low_pass_d_.data()).transpose();
+      Eigen::Map<Eigen::Matrix<double, 1, 1> >(low_pass_d_.data()).transpose();
   low_pass_filter.x.resize(3);
   low_pass_filter.init = false;
 }
 
 bool CompFilterEstimator::updateOnce(
-    quad_msgs::RobotState &last_robot_state_msg_)
-{
+    quad_msgs::RobotState& last_robot_state_msg_) {
   ros::Time state_timestamp = ros::Time::now();
   last_robot_state_msg_.body.twist.angular = last_imu_msg_.angular_velocity;
-  last_robot_state_msg_.body.twist.linear = last_imu_msg_.linear_acceleration;
-  last_robot_state_msg_.body.pose.orientation = last_imu_msg_.orientation;
   last_robot_state_msg_.joints = last_joint_state_msg_;
-  
-  last_robot_state_msg_.header.stamp = state_timestamp;
   last_joint_state_msg_.header.stamp = state_timestamp;
-  //last_imu_msg_.header.stamp = state_timestamp;
-  last_robot_state_msg_.body.pose.position.z = 0.3;
-  last_robot_state_msg_.body.pose.position.x = x_pos;
-  x_pos += dx;
-  if(x_pos > 3 || x_pos < -1){
-    dx = -dx;
+  last_imu_msg_.header.stamp = state_timestamp;
+
+  // Check if mocap data was received
+  if (last_mocap_msg_ == NULL) {
+    ROS_WARN_THROTTLE(1, "No body pose (mocap) recieved");
+    return false;
   }
-    
-  // // Check if mocap data was received
-  // if (last_mocap_msg_ == NULL) {
-  //   ROS_WARN_THROTTLE(1, "No body pose (mocap) recieved");
-  //   return false;
-  // }
-  // // Copy mocap readings
-  // last_robot_state_msg_.body.pose.orientation =
-  //     last_mocap_msg_->pose.orientation;
-  // last_robot_state_msg_.body.pose.position = last_mocap_msg_->pose.position;
+  // Copy mocap readings
+  last_robot_state_msg_.body.pose.orientation =
+      last_mocap_msg_->pose.orientation;
+  last_robot_state_msg_.body.pose.position = last_mocap_msg_->pose.position;
 
-  // // IMU is in body frame
-  // Eigen::Vector3d acc;
-  // acc << last_imu_msg_.linear_acceleration.x,
-  //     last_imu_msg_.linear_acceleration.y, last_imu_msg_.linear_acceleration.z;
+  // IMU is in body frame
+  Eigen::Vector3d acc;
+  acc << last_imu_msg_.linear_acceleration.x,
+      last_imu_msg_.linear_acceleration.y, last_imu_msg_.linear_acceleration.z;
 
-  // Eigen::Matrix3d rot;
-  // tf2::Quaternion q(
-  //     last_mocap_msg_->pose.orientation.x, last_mocap_msg_->pose.orientation.y,
-  //     last_mocap_msg_->pose.orientation.z, last_mocap_msg_->pose.orientation.w);
-  // q.normalize();
-  // tf2::Matrix3x3 m(q);
-  // Eigen::Vector3d rpy;
-  // m.getRPY(rpy[0], rpy[1], rpy[2]);
-  // quadKD_->getRotationMatrix(rpy, rot);
-  // acc = rot * acc;
+  Eigen::Matrix3d rot;
+  tf2::Quaternion q(
+      last_mocap_msg_->pose.orientation.x, last_mocap_msg_->pose.orientation.y,
+      last_mocap_msg_->pose.orientation.z, last_mocap_msg_->pose.orientation.w);
+  q.normalize();
+  tf2::Matrix3x3 m(q);
+  Eigen::Vector3d rpy;
+  m.getRPY(rpy[0], rpy[1], rpy[2]);
+  quadKD_->getRotationMatrix(rpy, rot);
+  acc = rot * acc;
 
-  // // Ignore gravity
-  // acc[2] -= 9.81;
+  // Ignore gravity
+  acc[2] -= 9.81;
 
-  // if (!high_pass_filter.init) {
-  //   // Init filter, we want to make sure that if the input is zero, the
-  //   // output velocity is zero and the state remains the same
-  //   for (size_t i = 0; i < 3; i++) {
-  //     high_pass_filter.x.at(i) << 0, 0;
-  //   }
-  //   high_pass_filter.init = true;
-  // }
+  if (!high_pass_filter.init) {
+    // Init filter, we want to make sure that if the input is zero, the
+    // output velocity is zero and the state remains the same
+    for (size_t i = 0; i < 3; i++) {
+      high_pass_filter.x.at(i) << 0, 0;
+    }
+    high_pass_filter.init = true;
+  }
 
-  // // Apply filter
-  // for (size_t i = 0; i < 3; i++) {
-  //   // Compute outputs
-  //   imu_vel_estimate_(i) = (high_pass_filter.C * high_pass_filter.x.at(i) +
-  //                           high_pass_filter.D * acc(i))(0, 0);
+  // Apply filter
+  for (size_t i = 0; i < 3; i++) {
+    // Compute outputs
+    imu_vel_estimate_(i) = (high_pass_filter.C * high_pass_filter.x.at(i) +
+                            high_pass_filter.D * acc(i))(0, 0);
 
-  //   // Compute states
-  //   high_pass_filter.x.at(i) = high_pass_filter.A * high_pass_filter.x.at(i) +
-  //                              high_pass_filter.B * acc(i);
-  // }
+    // Compute states
+    high_pass_filter.x.at(i) = high_pass_filter.A * high_pass_filter.x.at(i) +
+                               high_pass_filter.B * acc(i);
+  }
 
-  // // Complementary filter
-  // vel_estimate_ = imu_vel_estimate_ + mocap_vel_estimate_;
-  // quad_utils::Eigen3ToVector3Msg(vel_estimate_,
-  //                                last_robot_state_msg_.body.twist.linear);
+  // Complementary filter
+  vel_estimate_ = imu_vel_estimate_ + mocap_vel_estimate_;
+  quad_utils::Eigen3ToVector3Msg(vel_estimate_,
+                                 last_robot_state_msg_.body.twist.linear);
 
   // Fill in the rest of the state message (foot state and headers)
   quad_utils::fkRobotState(*quadKD_, last_robot_state_msg_);
   quad_utils::updateStateHeaders(last_robot_state_msg_, state_timestamp, "map",
                                  0);
-  //std::cout << "New header" << last_imu_msg_.header.stamp << std::endl;
-
-  // TODO FIXME
-  // for (int i = 0; i < 4; i++) {
-  //   last_robot_state_msg_.feet.feet[i].velocity.z -= 9.8;
-  // }
-
   return true;
 }
 
 void CompFilterEstimator::mocapCallBackHelper(
-    const geometry_msgs::PoseStamped::ConstPtr &msg,
-    const Eigen::Vector3d &pos)
-{
-  if (low_pass_filter.init)
-  {
+    const geometry_msgs::PoseStamped::ConstPtr& msg,
+    const Eigen::Vector3d& pos) {
+  if (low_pass_filter.init) {
     // Apply filter
-    for (size_t i = 0; i < 3; i++)
-    {
+    for (size_t i = 0; i < 3; i++) {
       // Compute outputs
       mocap_vel_estimate_(i) = (low_pass_filter.C * low_pass_filter.x.at(i) +
                                 low_pass_filter.D * pos(i))(0, 0);
@@ -142,9 +120,8 @@ void CompFilterEstimator::mocapCallBackHelper(
       low_pass_filter.x.at(i) = low_pass_filter.A * low_pass_filter.x.at(i) +
                                 low_pass_filter.B * pos(i);
     }
-  }
-  else
-  {
+
+  } else {
     // Init filter, we want to ensure that if the next reading is the same, the
     // output speed should be zero and the filter state remains the same
     Eigen::Matrix<double, 3, 2> left;
@@ -155,8 +132,7 @@ void CompFilterEstimator::mocapCallBackHelper(
     right.topRows(2) = -low_pass_filter.B;
     right.bottomRows(1) = -low_pass_filter.D;
 
-    for (size_t i = 0; i < 3; i++)
-    {
+    for (size_t i = 0; i < 3; i++) {
       low_pass_filter.x.at(i) =
           left.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV)
               .solve(right * pos(i));

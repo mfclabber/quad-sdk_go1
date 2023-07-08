@@ -2,9 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(robot_driver)
 
 ## Compile as C++14, supported in ROS Melodic and newer
-# add_compile_options(-std=c++17 -fsanitize=address,undefined)
-# add_link_options(-fsanitize=address,undefined)
-add_compile_options(-std=c++17)
+add_compile_options(-std=c++14)
   
 ## Set default cmake build type to release
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
@@ -25,15 +23,12 @@ endif()
 
 include_directories(${MBLINK_DIR}/include)
 link_directories(${MBLINK_DIR}/lib)
-#######
-# LCM #
-#######
+
 set(LCM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../unitree_legged_sdk)
 
 include_directories(${LCM_DIR}/include)
 link_directories(${LCM_DIR}/lib "../unitree_legged_sdk/lib/cpp/amd64/libunitree_legged_sdk.a")
 # set(EXTRA_LIBS -pthread libunitree_legged_sdk lcm)
-set(EXTRA_LIBS -pthread lcm)
 
 find_package(Eigen3 REQUIRED)
 
@@ -86,17 +81,15 @@ add_library(robot_driver
   src/estimators/unitree_estimator.cpp
   src/hardware_interfaces/hardware_interface.cpp
   src/hardware_interfaces/spirit_interface.cpp
-  # src/hardware_interfaces/a1_interface.cpp
   src/hardware_interfaces/go1_interface.cpp
-  src/estimators/realsense_estimator.cpp
 )
 add_dependencies(robot_driver ${robot_driver_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(robot_driver
   ${GRMBLINK}
   ${catkin_LIBRARIES}
-  ${EXTRA_LIBS}
   ${CMAKE_CURRENT_SOURCE_DIR}/../unitree_legged_sdk/lib/cpp/amd64/libunitree_legged_sdk.a
+
 )
 
 ## Declare a C++ executable

@@ -1,6 +1,6 @@
 #include "robot_driver/hardware_interfaces/spirit_interface.h"
 
-SpiritInterface::SpiritInterface(ros::NodeHandle nh) : HardwareInterface(nh) {}
+SpiritInterface::SpiritInterface() {}
 
 void SpiritInterface::loadInterface(int argc, char** argv) {
   /// Ghost MBLink interface class

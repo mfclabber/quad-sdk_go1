@@ -33,7 +33,7 @@ class SpiritInterface : public HardwareInterface {
    * @brief Constructor for SpiritInterface
    * @return Constructed object of type SpiritInterface
    */
-  SpiritInterface(ros::NodeHandle nh);
+  SpiritInterface();
 
   /**
    * @brief Load the hardware interface
