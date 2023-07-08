@@ -1,4 +1,4 @@
-Установка [unitree_legged_sdk v3.8.6](https://github.com/unitreerobotics/unitree_legged_sdk.git)):
+## Установка ([unitree_legged_sdk v3.8.6](https://github.com/unitreerobotics/unitree_legged_sdk.git)):
 ```
 cd <path_to_quad-sdk>/src/quad-sdk-go1
 ```
