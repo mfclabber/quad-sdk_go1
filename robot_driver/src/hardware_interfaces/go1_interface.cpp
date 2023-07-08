@@ -31,8 +31,9 @@ std::map<int, int> sign_q2u = { // Change sign for motion
 };
 
 Go1Interface::Go1Interface(ros::NodeHandle nh) : 
-  udp(8080, "192.168.123.10", 8007, LOW_CMD_LENGTH, LOW_STATE_LENGTH, false, RecvEnum::block),
-  HardwareInterface(nh) {
+  HardwareInterface(nh),
+  udp(8080, "192.168.123.10", 8007, LOW_CMD_LENGTH, LOW_STATE_LENGTH, false, RecvEnum::block)
+  {
   
   udp.InitCmdData(cmd);
   
@@ -60,8 +61,8 @@ Go1Interface::Go1Interface(ros::NodeHandle nh) :
 
 void Go1Interface::loadInterface(int argc, char** argv) {
   for (int i = 0; i < 10; i++) {
-    udp.SetSend(cmd);
-    udp.Send();
+    //udp.SetSend(cmd);
+    //udp.Send();
     usleep(20'000);
   }
 }
