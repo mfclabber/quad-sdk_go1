@@ -30,8 +30,9 @@ std::map<int, int> sign_q2u = { // Change sign for motion
      {RR_2, 1},
 };
 
-Go1Interface::Go1Interface() : 
-  udp(8080, "192.168.123.10", 8007, LOW_CMD_LENGTH, LOW_STATE_LENGTH, false, RecvEnum::block) {
+Go1Interface::Go1Interface(ros::NodeHandle nh) : 
+  udp(8080, "192.168.123.10", 8007, LOW_CMD_LENGTH, LOW_STATE_LENGTH, false, RecvEnum::block),
+  HardwareInterface(nh) {
   
   udp.InitCmdData(cmd);
   

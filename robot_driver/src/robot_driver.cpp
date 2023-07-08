@@ -128,7 +128,7 @@ RobotDriver::RobotDriver(ros::NodeHandle nh, int argc, char **argv) {
     //     hardware_interface_ = nullptr;
     //   }
     // }
-    hardware_interface_ = std::make_shared<Go1Interface>();
+    hardware_interface_ = std::make_shared<Go1Interface>(nh);
     ROS_INFO("Go1 interface has been loaded");
 
   }

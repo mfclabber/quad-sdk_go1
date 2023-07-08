@@ -18,7 +18,7 @@ using namespace UNITREE_LEGGED_SDK;
 
 class Go1Interface : public HardwareInterface {
  public:
-  Go1Interface();
+  Go1Interface(ros::NodeHandle nh);
 
   virtual void loadInterface(int argc, char** argv);
   virtual void unloadInterface();

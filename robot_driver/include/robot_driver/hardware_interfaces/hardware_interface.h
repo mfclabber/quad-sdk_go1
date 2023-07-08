@@ -31,7 +31,7 @@ class HardwareInterface {
    * @brief Constructor for HardwareInterface
    * @return Constructed object of type HardwareInterface
    */
-  HardwareInterface();
+  HardwareInterface(ros::NodeHandle nh);
 
   /**
    * @brief Load the hardware interface
