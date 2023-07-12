@@ -113,7 +113,7 @@ Refer to the [Quad-SDK Wiki](https://github.com/robomechanics/quad-sdk/wiki/1.-G
 Launch the simulation with:
 
 ```
-roslaunch quad_utils quad_gazebo.launch
+roslaunch quad_utils quad_gazebo.launch robot_type:=go1
 ```
 
 Stand the robot with:
