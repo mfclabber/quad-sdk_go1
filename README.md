@@ -1,3 +1,6 @@
+## Quad-SDK Unitree Go1
+![image](https://github.com/mfclabber/quad-sdk_go1/assets/118126641/09f7f5fa-0c98-4aea-8e35-a7afb66cd213)
+
 ## Установка ([unitree_legged_sdk v3.8.6](https://github.com/unitreerobotics/unitree_legged_sdk.git)):
 ```
 cd <path_to_quad-sdk>/src/quad-sdk-go1
@@ -24,6 +27,8 @@ catkin build || catkin_make
 ## Run real Unitree go1
 
 Предварительно настроить проводное соединение по UDP->Ethernet
+![image](https://github.com/mfclabber/quad-sdk_go1/assets/118126641/7834b7db-a54b-4788-acf5-c27d6c5c633c)
+
 
 Запуск визуализации, контроллера и драйвера:
 ```
