@@ -12,7 +12,10 @@ git clone https://github.com/unitreerobotics/unitree_legged_sdk.git
 cd unitree_legged_sdk
 ```
 ```
-mkdir build
+mkdir build 
+```
+```
+cd build 
 ```
 ```
 cmake .. && make
